@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class Ball extends StatelessWidget {
  Ball({super.key, required this.ballX, required this.ballY});
 
-  final ballX;
-  final ballY;
+  final double ballX;
+  final double ballY;
 
   @override
   Widget build(BuildContext context) {
