@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 class Player extends StatelessWidget {
   const Player({super.key, required this.playerX, required this.playerWidth});
 
-  final playerX;
-  final playerWidth;
+  final double  playerX;
+  final double playerWidth;
   @override
   Widget build(BuildContext context) {
     return Container(
-      alignment: Alignment((2 * playerWidth) / (2 - playerWidth), 0.0),
+      alignment: Alignment(playerX * 2, 0.9),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
         child: Container(
           height: 10,
-          width: playerWidth / 2,
+          width: MediaQuery.of(context).size.width * playerWidth,
           color: Colors.deepPurple,
         ),
       ),
