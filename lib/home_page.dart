@@ -2,12 +2,12 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:myapp/ball.dart';
-import 'package:myapp/bricks.dart';
-import 'package:myapp/cover_screen.dart';
-import 'package:myapp/gameover_screen.dart';
-import 'package:myapp/player.dart';
 import 'package:flutter/services.dart';
+import 'player.dart';
+import 'bricks.dart';
+import 'ball.dart';
+import 'cover_screen.dart';
+import 'gameover_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,100 +16,129 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-//Directions
-enum direction { UP, DOWN, LEFT, RIGHT }
+enum Direction { UP, DOWN, LEFT, RIGHT }
 
 class _HomePageState extends State<HomePage> {
-  //Variables for the ball size
   double ballX = 0;
   double ballY = 0;
-  var ballXDirection = direction.DOWN;
-  var ballYDirection = direction.LEFT;
-  double ballXincreements = 0.01;
-  double ballYincreements = 0.01;
+  var ballXDirection = Direction.LEFT;
+  var ballYDirection = Direction.DOWN;
+  final double ballXIncrements = 0.01;
+  final double ballYIncrements = 0.01;
 
-  //Variables for the brick
-  double brickX = 0;
-  double brickY = -0.9;
-  double brickWidth = 0.4;
-  double brickHeight = 0.05;
-  bool brickBroken = false;
-  
-  //Method to start the game
-  void startGame() {
-    hasGameStarted = true;
-    Timer.periodic(Duration(milliseconds: 10), (timer) {
-      updateDirection();
-      moveBall();
-      if (isPlayerDead()) {
-        timer.cancel();
-        isGameOver = true;
-      }
-      checkForBrokenBrick();
-    });
+  // Brick properties
+  static const double brickWidth = 0.4;
+  static const double brickHeight = 0.05;
+  static const double brickGap = 0.05;
+  static const int numberOfBricksInRow = 4;
+  static const int numberOfBrickRows = 3;
+  static double wallGap =
+      0.5 * (2 - numberOfBricksInRow * brickWidth - (numberOfBricksInRow - 1) * brickGap);
+  static double firstBrickX = -1 + wallGap;
+  static double firstBrickY = -0.5; // Adjusted to a more visible position
+
+  List<List<dynamic>> myBricks = [];
+
+  bool hasGameStarted = false;
+  bool isGameOver = false;
+
+  double playerX = -0.2;
+  final double playerWidth = 0.4;
+
+  @override
+  void initState() {
+    super.initState();
+    generateBricks();
   }
 
-  //Method to check the broken brick
-  void checkForBrokenBrick() {
-    if (ballX >= brickX &&
-        ballX <= brickWidth &&
-        ballY <= brickY + brickHeight &&
-        brickBroken == false) {
+  void generateBricks() {
+    myBricks.clear();
+    for (int row = 0; row < numberOfBrickRows; row++) {
+      for (int col = 0; col < numberOfBricksInRow; col++) {
+        double x = firstBrickX + col * (brickWidth + brickGap);
+        double y = firstBrickY - row * (brickHeight + brickGap);
+        myBricks.add([x, y, false]); // [x, y, isBroken]
+      }
+    }
+  }
+
+  void startGame() {
+    if (!hasGameStarted) {
       setState(() {
-        brickBroken = true;
-        ballYDirection = direction.DOWN;
+        hasGameStarted = true;
+      });
+
+      Timer.periodic(const Duration(milliseconds: 10), (timer) {
+        setState(() {
+          updateDirection();
+          moveBall();
+          checkForBrokenBrick();
+
+          if (isPlayerDead()) {
+            timer.cancel();
+            isGameOver = true;
+          }
+        });
       });
     }
   }
 
-  //Method to move the ball
-  void moveBall() {
-    setState(() {
-      if(ballXDirection == direction.LEFT){
-        ballX -= ballXincreements;
-      } else if(ballXDirection == direction.RIGHT){
-        ballX += ballXincreements;
-      }
-      if (ballYDirection == direction.DOWN) {
-        ballY += ballYincreements;
-      } else if (ballYDirection == direction.UP) {
-        ballY -= ballYincreements;
-      }
-    });
-  }
+  void checkForBrokenBrick() {
+    for (var brick in myBricks) {
+      double brickX = brick[0] as double;
+      double brickY = brick[1] as double;
+      bool isBroken = brick[2] as bool;
 
-  //Updating the direction
-  void updateDirection() {
-    setState(() {
-      if(ballX >= 1){
-        ballXDirection = direction.LEFT;
-      } else if(ballX <= -1){
-        ballXDirection = direction.RIGHT;
+      if (!isBroken &&
+          ballX >= brickX &&
+          ballX <= brickX + brickWidth &&
+          ballY >= brickY &&
+          ballY <= brickY + brickHeight) {
+        setState(() {
+          brick[2] = true;
+          ballYDirection = Direction.DOWN;
+        });
       }
-      if (ballY >= 0.9 && ballX >= playerX && ballX <= playerX + playerWidth) {
-        ballYDirection = direction.UP;
-      } else if (ballY <= -1) {
-        ballYDirection = direction.DOWN;
-      }
-    });
-  }
-
-  //Checking whether the game has started
-  bool hasGameStarted = false;
-  bool isGameOver = false;
-  bool isPlayerDead() {
-    if (ballY >= 1) {
-      return true;
-    } else {
-      return false;
     }
   }
 
-  //Player details
-  double playerX = -0.2;
-  double playerWidth = 0.4;
+  void moveBall() {
+    if (ballXDirection == Direction.LEFT) {
+      ballX -= ballXIncrements;
+    } else if (ballXDirection == Direction.RIGHT) {
+      ballX += ballXIncrements;
+    }
 
-  //Moving player to left
+    if (ballYDirection == Direction.DOWN) {
+      ballY += ballYIncrements;
+    } else if (ballYDirection == Direction.UP) {
+      ballY -= ballYIncrements;
+    }
+
+    if (ballX > 1.0) ballX = 1.0;
+    if (ballX < -1.0) ballX = -1.0;
+    if (ballY > 1.0) ballY = 1.0;
+    if (ballY < -1.0) ballY = -1.0;
+  }
+
+  void updateDirection() {
+    if (ballX >= 1.0) {
+      ballXDirection = Direction.LEFT;
+    } else if (ballX <= -1.0) {
+      ballXDirection = Direction.RIGHT;
+    }
+
+    if (ballY >= 0.9 && ballX >= playerX && ballX <= playerX + playerWidth) {
+      ballYDirection = Direction.UP;
+    } else if (ballY <= -1.0) {
+      ballYDirection = Direction.DOWN;
+    }
+  }
+
+  bool isPlayerDead() {
+    return ballY >= 1.0;
+  }
+
   void moveLeft() {
     setState(() {
       if (playerX > -1) {
@@ -118,7 +147,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  //Moving player to the right
   void moveRight() {
     setState(() {
       if (playerX + playerWidth < 1) {
@@ -129,7 +157,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // ignore: deprecated_member_use
     return RawKeyboardListener(
       focusNode: FocusNode(),
       autofocus: true,
@@ -147,22 +174,19 @@ class _HomePageState extends State<HomePage> {
           body: Center(
             child: Stack(
               children: [
-                //Tap to Play button
                 CoverScreen(hasGameStarted: hasGameStarted),
-                //Game over
                 GameoverScreen(isGameOver: isGameOver),
-                //Ball
                 Ball(ballX: ballX, ballY: ballY),
-                //Player
                 Player(playerX: playerX, playerWidth: playerWidth),
-                //Bricks
-                Bricks(
-                  brickHeight: brickHeight,
-                  brickWidth: brickWidth,
-                  brickY: brickY,
-                  brickX: brickX,
-                  brickBroken: brickBroken,
-                ),
+                for (var brick in myBricks)
+                  if (!(brick[2] as bool))
+                    Bricks(
+                      brickHeight: brickHeight,
+                      brickWidth: brickWidth,
+                      brickX: brick[0] as double,
+                      brickY: brick[1] as double,
+                      brickBroken: brick[2] as bool,
+                    ),
               ],
             ),
           ),
