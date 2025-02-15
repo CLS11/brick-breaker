@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 class Player extends StatelessWidget {
+  final double playerX;
+  final double playerWidth;
+
   const Player({super.key, required this.playerX, required this.playerWidth});
 
-  final double  playerX;
-  final double playerWidth;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -13,7 +14,7 @@ class Player extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         child: Container(
           height: 10,
-          width: MediaQuery.of(context).size.width * playerWidth,
+          width: MediaQuery.of(context).size.width * playerWidth / 2,
           color: Colors.deepPurple,
         ),
       ),
