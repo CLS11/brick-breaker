@@ -1,13 +1,14 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'player.dart';
-import 'bricks.dart';
-import 'ball.dart';
-import 'cover_screen.dart';
-import 'gameover_screen.dart';
+import 'package:myapp/ball.dart';
+import 'package:myapp/bricks.dart';
+import 'package:myapp/cover_screen.dart';
+import 'package:myapp/gameover_screen.dart';
+import 'package:myapp/player.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,15 +22,15 @@ enum Direction { UP, DOWN, LEFT, RIGHT }
 class _HomePageState extends State<HomePage> {
   double ballX = 0;
   double ballY = 0;
-  var ballXDirection = Direction.LEFT;
-  var ballYDirection = Direction.DOWN;
+  Direction ballXDirection = Direction.LEFT;
+  Direction ballYDirection = Direction.DOWN;
   final double ballXIncrements = 0.01;
   final double ballYIncrements = 0.01;
 
   // Brick properties
-  static const double brickWidth = 0.4;
+  static const double brickWidth = 0.5;
   static const double brickHeight = 0.05;
-  static const double brickGap = 0.05;
+  static const double brickGap = 0.02;
   static const int numberOfBricksInRow = 4;
   static const int numberOfBrickRows = 3;
   static double wallGap =
@@ -53,10 +54,10 @@ class _HomePageState extends State<HomePage> {
 
   void generateBricks() {
     myBricks.clear();
-    for (int row = 0; row < numberOfBrickRows; row++) {
-      for (int col = 0; col < numberOfBricksInRow; col++) {
-        double x = firstBrickX + col * (brickWidth + brickGap);
-        double y = firstBrickY - row * (brickHeight + brickGap);
+    for (var row = 0; row < numberOfBrickRows; row++) {
+      for (var col = 0; col < numberOfBricksInRow; col++) {
+        final x = firstBrickX + col * (brickWidth + brickGap);
+        final y = firstBrickY - row * (brickHeight + brickGap);
         myBricks.add([x, y, false]); // [x, y, isBroken]
       }
     }
@@ -84,10 +85,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void checkForBrokenBrick() {
-    for (var brick in myBricks) {
-      double brickX = brick[0] as double;
-      double brickY = brick[1] as double;
-      bool isBroken = brick[2] as bool;
+    for (final brick in myBricks) {
+      final brickX = brick[0] as double;
+      final brickY = brick[1] as double;
+      final isBroken = brick[2] as bool;
 
       if (!isBroken &&
           ballX >= brickX &&
@@ -161,12 +162,14 @@ class _HomePageState extends State<HomePage> {
       focusNode: FocusNode(),
       autofocus: true,
       onKey: (event) {
-        if (event.isKeyPressed(LogicalKeyboardKey.arrowLeft)) {
-          moveLeft();
-        } else if (event.isKeyPressed(LogicalKeyboardKey.arrowRight)) {
-          moveRight();
+        if (event is RawKeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+              moveLeft();
+            } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+              moveRight();
+          }
         }
-      },
+    },
       child: GestureDetector(
         onTap: startGame,
         child: Scaffold(
@@ -178,7 +181,7 @@ class _HomePageState extends State<HomePage> {
                 GameoverScreen(isGameOver: isGameOver),
                 Ball(ballX: ballX, ballY: ballY),
                 Player(playerX: playerX, playerWidth: playerWidth),
-                for (var brick in myBricks)
+                for (final brick in myBricks)
                   if (!(brick[2] as bool))
                     Bricks(
                       brickHeight: brickHeight,
