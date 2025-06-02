@@ -1,6 +1,21 @@
-# BRICK BREAKER
+# Brick Breaker
 
-A flutter game illustrating the different features of the brick breaker game.
+A classic Brick Breaker game built with Flutter. Bounce the ball, break all the bricks, and aim for the highest score!
 
-Following link has been referred for this project:
-https://www.youtube.com/watch?v=RToIapK2Cj8&list=PLlvRDpXh1Se6kipeBLiF1xByAEmxYie6J
+---
+
+## Features
+
+- Classic arcade gameplay  
+- Responsive controls to move the paddle  
+- Multiple bricks to break  
+- Score tracking  
+
+---
+
+## Tech Stack
+
+- Flutter & Dart  
+- Stateful widgets to handle game state  
+- Custom animations and collision detection  
+
